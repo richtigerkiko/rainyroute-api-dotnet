@@ -8,6 +8,8 @@ public class WeatherRouteResponse
         this.CoordinatesDestination = coordinateDestination;
         WeatherRoutePoints = new List<WeatherRoutePoint>();
         PolyLine = "";
+        this.StartTime = DateTime.Now;
+        this.FinishTime = DateTime.Now;
 
     }
 
@@ -17,9 +19,22 @@ public class WeatherRouteResponse
         this.CoordinatesDestination = new GeoCoordinate();
         WeatherRoutePoints = new List<WeatherRoutePoint>();
         PolyLine = "";
+        this.StartTime = DateTime.Now;
+        this.FinishTime = DateTime.Now;
 
     }
 
+    public WeatherRouteResponse(GeoCoordinate coordinatesStart, GeoCoordinate coordinatesDestination, DateTime finishTime, DateTime startTime, string polyLine)
+    {
+        this.CoordinatesStart = coordinatesStart;
+        this.CoordinatesDestination = coordinatesDestination;
+        this.FinishTime = finishTime;
+        this.PolyLine = polyLine;
+        this.StartTime = startTime;
+        this.FinishTime = finishTime;
+        WeatherRoutePoints = new List<WeatherRoutePoint>();
+
+    }
     public GeoCoordinate CoordinatesStart { get; set; }
 
     public GeoCoordinate CoordinatesDestination { get; set; }

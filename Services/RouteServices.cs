@@ -1,6 +1,7 @@
 using rainyroute.Models;
 using rainyroute.Models.ResponseObjects;
 using rainyroute.Models.ResponseObjects.ExternalApiResponses.OSRMApi;
+using PolylinerNet;
 
 namespace rainyroute.Services;
 
@@ -38,6 +39,16 @@ public class RouteServices : BaseService
         // We expect only one Route and only one leg, so we can ignore everything else and simplyify the variable
         var annotation = osrmRouteResponse.Routes[0].Legs[0].Annotation;
 
+        // getting coordinates from Polyline
+        var geoCoordinatesFromPolyLine = GetCoordinatesFromPolyline(osrmRouteResponse.Routes[0].Geometry);
+
+        // 
+        var weather = MergePolylineCoordinatesWithOSRMAnnotation(osrmRouteResponse.Routes[0].Geometry, annotation);
+
+
+        // lowering the resolution
+        var lowResolutionAnnotation = LowerAnnotationResolution(annotation, 10000);
+
 
         throw new NotImplementedException();
     }
@@ -67,14 +78,14 @@ public class RouteServices : BaseService
         resultObj.Duration.Add(0);
 
         // iterate through all nodes
-        for (int i = 0; i < originalAnnotation.Nodes.Count - 1; i++)
+        for (int i = 0; i < originalAnnotation.Distance.Count - 1; i++)
         {
             // Adding distancecounter
             distanceCounter += originalAnnotation.Distance[i];
             durationCounter += originalAnnotation.Duration[i];
 
             // distancecounter is as big as resolutioncounter, add to returnobject
-            if (distanceCounter >= resolutionMeters && i >= originalAnnotation.Nodes.Count - 2)
+            if (distanceCounter >= resolutionMeters)
             {
                 resultObj.Distance.Add(distanceCounter);
                 resultObj.Duration.Add(durationCounter);
@@ -86,5 +97,58 @@ public class RouteServices : BaseService
         }
 
         return resultObj;
+    }
+
+    private List<GeoCoordinate> GetCoordinatesFromPolyline(string polyLine)
+    {
+        var polyliner = new Polyliner();
+        var returnList = new List<GeoCoordinate>();
+
+        var result = polyliner.Decode(polyLine);
+
+        foreach (var polylinePoint in result)
+        {
+            returnList.Add(new GeoCoordinate(
+                polylinePoint.Latitude, polylinePoint.Longitude
+            ));
+        }
+
+        return returnList;
+    }
+
+    private List<WeatherRoutePoint> MergePolylineCoordinatesWithOSRMAnnotation(string polyLine, Annotation osrmAnnotation)
+    {
+        var geoCoordinateList = GetCoordinatesFromPolyline(polyLine);
+
+        var returnList = new List<WeatherRoutePoint>();
+
+        // we have to iterate on all geocoordinates and get the corresponding annotation Distance, Speed and Duration properties
+        for (int i = 0; i < geoCoordinateList.Count; i++)
+        {
+            var distance = 0.0;
+            var duration = 0.0;
+            geoCoordinateList[i].Speed = 0.0;
+
+            // first item is a special case because distance speed and duration are 0 there, those lists are also one shorter because of that
+            if (i != 0)
+            {
+                geoCoordinateList[i].Speed = osrmAnnotation.Speed[i - 1];
+                distance = osrmAnnotation.Distance[i - 1];
+                duration = osrmAnnotation.Duration[i - 1];
+            }
+
+            // if its not the last item, set orientation to next coordinate
+            if (i < geoCoordinateList.Count - 1)
+            {
+                geoCoordinateList[i].SetCourse(geoCoordinateList[i + 1]);
+            }
+
+            returnList.Add(new WeatherRoutePoint(
+                geoCoordinateList[i], distance, duration, null
+            ));
+
+        }
+
+        return returnList;
     }
 }

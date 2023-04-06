@@ -104,14 +104,14 @@ public class GeoCoordinate : IEquatable<GeoCoordinate>
     // ist noch falsch
     public CardinalDirection GetCardinalDirection(GeoCoordinate other)
     {
-        throw new NotImplementedException();
-        // var course = CalculateCourse(other);
+    
+        var course = CalculateCourse(other);
 
 
-        // int halfQuarter = Convert.ToInt32(course);
-        // halfQuarter %= 8;
-        // Console.WriteLine(halfQuarter);
-        // return (CardinalDirection)halfQuarter;
+        int halfQuarter = Convert.ToInt32(course);
+        halfQuarter %= 8;
+        Console.WriteLine(halfQuarter);
+        return (CardinalDirection)halfQuarter;
 
     }
 

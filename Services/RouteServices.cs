@@ -39,12 +39,8 @@ public class RouteServices : BaseService
         // We expect only one Route and only one leg, so we can ignore everything else and simplyify the variable
         var annotation = osrmRouteResponse.Routes[0].Legs[0].Annotation;
 
-        // getting coordinates from Polyline
-        var geoCoordinatesFromPolyLine = GetCoordinatesFromPolyline(osrmRouteResponse.Routes[0].Geometry);
-
-        // 
+        // Mergin Geomatrie and Annotation Data
         var weatherPoints = MergePolylineCoordinatesWithOSRMAnnotation(osrmRouteResponse.Routes[0].Geometry, annotation);
-
 
         // lowering the resolution
         var lowResolutionWeatherPoints = LowerAnnotationResolution(weatherPoints, 10000);

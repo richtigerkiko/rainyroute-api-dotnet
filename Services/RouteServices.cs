@@ -43,11 +43,11 @@ public class RouteServices : BaseService
         var geoCoordinatesFromPolyLine = GetCoordinatesFromPolyline(osrmRouteResponse.Routes[0].Geometry);
 
         // 
-        var weather = MergePolylineCoordinatesWithOSRMAnnotation(osrmRouteResponse.Routes[0].Geometry, annotation);
+        var weatherPoints = MergePolylineCoordinatesWithOSRMAnnotation(osrmRouteResponse.Routes[0].Geometry, annotation);
 
 
         // lowering the resolution
-        var lowResolutionAnnotation = LowerAnnotationResolution(annotation, 10000);
+        var lowResolutionWeatherPoints = LowerAnnotationResolution(weatherPoints, 10000);
 
 
         throw new NotImplementedException();
@@ -138,7 +138,7 @@ public class RouteServices : BaseService
             }
 
             returnList.Add(new WeatherRoutePoint(
-                geoCoordinateList[i], distance, duration, null
+                geoCoordinateList[i], distance, duration, returnList.LastOrDefault()
             ));
 
         }

@@ -19,12 +19,13 @@ public class RouteServices : BaseService
     /// <param name="destination">Destination Coordinate Object</param>
     /// <param name="startTime">DateTime object when the route should start</param>
     /// <returns></returns>    
-    public async Task<WeatherRouteResponse> GetWeatherRouteResponseObject(GeoCoordinate start, GeoCoordinate destination, DateTime? startTime)
+    public async Task<WeatherRouteResponse> GetWeatherRouteResponseObject(GeoCoordinate start, GeoCoordinate destination, DateTime startTime)
     {
         // init apiServices
         var openStreetmapApiService = new OpenStreetmapApiService(_logger, _config, _httpClient);
         var weatherApiService = new WeatherApiService(_logger, _config, _httpClient);
 
+        var returnObject = new WeatherRouteResponse();
 
         // getting OSRM route 
         _logger.LogDebug("Getting OSRM Route");
@@ -45,8 +46,18 @@ public class RouteServices : BaseService
         // lowering the resolution
         var lowResolutionWeatherPoints = LowerAnnotationResolution(weatherPoints, 10000);
 
+        // Get weather Data from API
+        lowResolutionWeatherPoints = await weatherApiService.AddWeatherToGeoWeatherList(lowResolutionWeatherPoints);
 
-        throw new NotImplementedException();
+        return new WeatherRouteResponse()
+        {
+            CoordinatesDestination = destination,
+            CoordinatesStart = start,
+            StartTime = startTime,
+            FinishTime = startTime.AddSeconds(osrmRouteResponse.Routes[0].Legs[0].Duration),
+            WeatherRoutePoints = lowResolutionWeatherPoints,
+            PolyLine = osrmRouteResponse.Routes[0].Geometry
+        };
     }
 
 
@@ -76,7 +87,7 @@ public class RouteServices : BaseService
                 // set distances/durations to accumuleted
                 weatherRoutePoints[i].DistanceFromLastPoint = distanceCounter;
                 weatherRoutePoints[i].DurationFromLastPoint = durationCounter;
-    
+
                 // Add to return List
                 resultObj.Add(weatherRoutePoints[i]);
 

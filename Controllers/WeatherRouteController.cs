@@ -30,8 +30,8 @@ public class WeatherRouteController : ControllerBase
     {
         var routeService = new RouteServices(_logger, _config, httpClient);
 
-        var aaa = routeService.GetWeatherRouteResponseObject(routeRequestObject.CoordinatesStart, routeRequestObject.CoordinatesDestination, routeRequestObject.StartTime);
-        return Ok();
+        var aaa = await routeService.GetWeatherRouteResponseObject(routeRequestObject.CoordinatesStart, routeRequestObject.CoordinatesDestination, routeRequestObject.StartTime);
+        return new JsonResult(aaa);
     }
 
 }

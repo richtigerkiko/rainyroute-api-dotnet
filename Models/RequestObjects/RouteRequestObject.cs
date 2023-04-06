@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using rainyroute.Models;
 
-namespace blueroute_api.Model.RequestObject;
+namespace rainyroute.Models.RequestObject;
 
 
 public class RouteRequestObject

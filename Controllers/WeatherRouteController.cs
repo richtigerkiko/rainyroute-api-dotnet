@@ -1,6 +1,5 @@
-using blueroute_api.Model.RequestObject;
 using Microsoft.AspNetCore.Mvc;
-using rainyroute.Models;
+using rainyroute.Models.RequestObject;
 
 namespace rainyroute.Controllers;
 
@@ -28,6 +27,7 @@ public class WeatherRouteController : ControllerBase
     [HttpPost("test")]
     public async Task<IActionResult> GetWeatherRoute([FromBody] RouteRequestObject routeRequestObject)
     {
+        
         return Ok();
     }
 

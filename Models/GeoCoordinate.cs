@@ -90,22 +90,24 @@ public class GeoCoordinate : IEquatable<GeoCoordinate>
 
 
     // sets course to destination
-    public void SetCourse (GeoCoordinate destination){
+    public void SetCourse(GeoCoordinate destination)
+    {
         Course = CalculateCourse(destination);
         CardinalDirection = GetCardinalDirection(destination);
     }
 
 
     // ist noch falsch
-    public CardinalDirection GetCardinalDirection(GeoCoordinate other){
-        
-        var course = CalculateCourse(other);
-        
+    public CardinalDirection GetCardinalDirection(GeoCoordinate other)
+    {
+        throw new NotImplementedException();
+        // var course = CalculateCourse(other);
 
-        int halfQuarter = Convert.ToInt32(course);
-        halfQuarter %= 8;
-        Console.WriteLine(halfQuarter);
-        return (CardinalDirection)halfQuarter;
+
+        // int halfQuarter = Convert.ToInt32(course);
+        // halfQuarter %= 8;
+        // Console.WriteLine(halfQuarter);
+        // return (CardinalDirection)halfQuarter;
 
     }
 

@@ -10,7 +10,7 @@ public class WeatherRoutePoint
     public double TotalDuration { get; set; }
     public double DurationFromLastPoint { get; set; }
     public Hour? WeatherForecastAtDuration { get; set; }
-    public List<Hour> CompleteForecast { get; set; }
+    public List<Hour>? CompleteForecast { get; set; }
 
     public WeatherRoutePoint(GeoCoordinate coordinates, double distanceFromLastPoint, double durationFromLastPoint, WeatherRoutePoint? LastPoint)
     {

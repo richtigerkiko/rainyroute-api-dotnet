@@ -48,6 +48,7 @@ public class OpenStreetmapApiService: BaseService
         catch (System.Exception ex)
         {
             _logger.LogError(ex, "Error getting OSRMAPI Result");
+            throw new HttpRequestException("couldn't get OSRMAPI Result");
         }
 
         return resultObj;

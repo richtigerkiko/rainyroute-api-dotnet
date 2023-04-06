@@ -42,6 +42,13 @@ public class RouteServices : BaseService
         throw new NotImplementedException();
     }
 
+
+    /// <summary>
+    /// Lowers the resolution of the osrm response
+    /// </summary>
+    /// <param name="originalAnnotation"></param>
+    /// <param name="resolutionMeters"></param>
+    /// <returns></returns>
     private Annotation LowerAnnotationResolution(Annotation originalAnnotation, double resolutionMeters)
     {
         var resultObj = new Annotation();

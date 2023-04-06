@@ -60,37 +60,31 @@ public class RouteServices : BaseService
     /// <param name="originalAnnotation"></param>
     /// <param name="resolutionMeters"></param>
     /// <returns></returns>
-    private Annotation LowerAnnotationResolution(Annotation originalAnnotation, double resolutionMeters)
+    private List<WeatherRoutePoint> LowerAnnotationResolution(List<WeatherRoutePoint> weatherRoutePoints, double resolutionMeters)
     {
-        var resultObj = new Annotation();
-        resultObj.Metadata = originalAnnotation.Metadata;
-
-        // clear distance, duration and node List and leave first node
-        resultObj.Distance = new List<double>();
-        resultObj.Duration = new List<double>();
-        resultObj.Nodes = new List<object>() { originalAnnotation.Nodes[0] };
+        var resultObj = new List<WeatherRoutePoint>();
 
         var distanceCounter = 0.0;
         var durationCounter = 0.0;
 
-        // add 0 for first
-        resultObj.Distance.Add(0);
-        resultObj.Duration.Add(0);
-
         // iterate through all nodes
-        for (int i = 0; i < originalAnnotation.Distance.Count - 1; i++)
+        for (int i = 0; i < weatherRoutePoints.Count; i++)
         {
             // Adding distancecounter
-            distanceCounter += originalAnnotation.Distance[i];
-            durationCounter += originalAnnotation.Duration[i];
+            distanceCounter += weatherRoutePoints[i].DistanceFromLastPoint;
+            durationCounter += weatherRoutePoints[i].DurationFromLastPoint;
 
-            // distancecounter is as big as resolutioncounter, add to returnobject
-            if (distanceCounter >= resolutionMeters)
+            // distancecounter is as big as resolutioncounter, add to returnobject, also add the last one
+            if (distanceCounter >= resolutionMeters || i == weatherRoutePoints.Count - 1)
             {
-                resultObj.Distance.Add(distanceCounter);
-                resultObj.Duration.Add(durationCounter);
-                resultObj.Nodes.Add(originalAnnotation.Nodes[i]);
+                // set distances/durations to accumuleted
+                weatherRoutePoints[i].DistanceFromLastPoint = distanceCounter;
+                weatherRoutePoints[i].DurationFromLastPoint = durationCounter;
+    
+                // Add to return List
+                resultObj.Add(weatherRoutePoints[i]);
 
+                // reset counter
                 distanceCounter = 0.0;
                 durationCounter = 0.0;
             }
@@ -129,7 +123,7 @@ public class RouteServices : BaseService
             var duration = 0.0;
             geoCoordinateList[i].Speed = 0.0;
 
-            // first item is a special case because distance speed and duration are 0 there, those lists are also one shorter because of that
+            // first item is a special case because distance speed and duration are 0 there, those lists are also one shorter because its "between to points"
             if (i != 0)
             {
                 geoCoordinateList[i].Speed = osrmAnnotation.Speed[i - 1];

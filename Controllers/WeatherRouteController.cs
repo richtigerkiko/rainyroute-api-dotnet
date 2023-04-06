@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using rainyroute.Models.RequestObject;
+using rainyroute.Services;
 
 namespace rainyroute.Controllers;
 
 [ApiController]
-[Route("/v1/[controller]")]
+[Route("v1/[controller]")]
 public class WeatherRouteController : ControllerBase
 {
     private readonly ILogger<WeatherRouteController> _logger;
@@ -24,10 +25,12 @@ public class WeatherRouteController : ControllerBase
         });
     }
 
-    [HttpPost("test")]
+    [HttpPost("GetWeatherRoute")]
     public async Task<IActionResult> GetWeatherRoute([FromBody] RouteRequestObject routeRequestObject)
     {
-        
+        var routeService = new RouteServices(_logger, _config, httpClient);
+
+        var aaa = routeService.GetWeatherRouteResponseObject(routeRequestObject.CoordinatesStart, routeRequestObject.CoordinatesDestination, routeRequestObject.StartTime);
         return Ok();
     }
 

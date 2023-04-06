@@ -11,6 +11,10 @@ public class GeoCoordinate : IEquatable<GeoCoordinate>
     public double Course { get; set; }
     public CardinalDirection CardinalDirection { get; set; }
 
+    public GeoCoordinate()
+    {
+    }
+
     public GeoCoordinate(double latitude, double longitude)
     {
         this.Latitude = latitude;

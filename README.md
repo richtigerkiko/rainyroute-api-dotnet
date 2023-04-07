@@ -2,7 +2,7 @@
 
 just a project to play around and learn.
 
-There is also a vuejs frontend: 
+There is also a vuejs frontend: [rainyroute-frontend-vuejs]((https://github.com/richtigerkiko/rainyroute-frontend-vuejs))
 
 ## What does it do?
 

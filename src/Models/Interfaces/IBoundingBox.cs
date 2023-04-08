@@ -7,4 +7,6 @@ interface IBoundingBox
 
     void ContainsPoint(double latidude, double longitude);
     Tuple<double, double> CenterOfBoundingBox();
+
+    List<IBoundingBox> DivideIntoSmallerBoxes(double boxSizeSqKm);
 }

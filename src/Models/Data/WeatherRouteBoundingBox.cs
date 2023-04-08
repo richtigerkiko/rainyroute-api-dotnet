@@ -19,4 +19,9 @@ class WeatherRouteBoundingBox : IBoundingBox
     {
         throw new NotImplementedException();
     }
+
+    public List<IBoundingBox> DivideIntoSmallerBoxes(double boxSizeSqKm)
+    {
+        throw new NotImplementedException();
+    }
 }

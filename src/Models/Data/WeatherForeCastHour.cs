@@ -2,7 +2,7 @@ using rainyroute.Models.ResponseObjects.ExternalApiResponses.WeatherAPI;
 
 namespace rainyroute.Models.Data;
 
-class WeatherForeCastHour
+public class WeatherForeCastHour
 {
     public DateTime Time { get; set; }
     public int ChanceOfRain { get; set; }

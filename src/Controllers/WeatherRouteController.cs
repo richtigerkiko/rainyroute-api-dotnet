@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using rainyroute.Models.RequestObject;
+using rainyroute.Persistance;
 using rainyroute.Services;
 
 namespace rainyroute.Controllers;
@@ -11,7 +12,7 @@ public class WeatherRouteController : ControllerBase
     private readonly ILogger<WeatherRouteController> _logger;
     private readonly IConfiguration _config;
 
-    private readonly RavenDbContext _ravenDbService;
+    private static RavenDbContext _ravenDbService;
 
     private readonly HttpClient httpClient;
 
@@ -20,6 +21,7 @@ public class WeatherRouteController : ControllerBase
         _logger = logger;
         _config = config;
 
+        _ravenDbService = ravenDbService;
         // Initialize new httpClient for all child services to use
         httpClient = new HttpClient(new SocketsHttpHandler
         {
@@ -37,7 +39,13 @@ public class WeatherRouteController : ControllerBase
     }
 
     [HttpGet("test")]
-    public IActionResult TestResponse(){
+    public IActionResult TestResponse()
+    {
+        var testthing = new Generator(_ravenDbService);
+        
+        testthing.GenerateGermanyBoundingBoxDocuments();
+
+        // var distanceBetweenFirstTwo = subBoxes[0].DistanceTo(subBoxes[1]);
         return Ok();
     }
 

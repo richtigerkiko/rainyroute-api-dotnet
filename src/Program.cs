@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using rainyroute.Models.Configurations;
+using rainyroute.Persistance;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,8 +11,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Configuration.SetBasePath($"{Directory.GetCurrentDirectory()}/src/").AddJsonFile("appsettings.json").Build();
 
 // Add Cors from appsettings.json
 var corsAllowedUrls = builder.Configuration["CORS:AllowedUrls"]?.Split(",") ?? new string[] { };

@@ -11,9 +11,11 @@ public class WeatherRouteController : ControllerBase
     private readonly ILogger<WeatherRouteController> _logger;
     private readonly IConfiguration _config;
 
+    private readonly RavenDbContext _ravenDbService;
+
     private readonly HttpClient httpClient;
 
-    public WeatherRouteController(ILogger<WeatherRouteController> logger, IConfiguration config)
+    public WeatherRouteController(ILogger<WeatherRouteController> logger, IConfiguration config, RavenDbContext ravenDbService)
     {
         _logger = logger;
         _config = config;
@@ -32,6 +34,11 @@ public class WeatherRouteController : ControllerBase
 
         var generatedResponse = await routeService.GetWeatherRouteResponseObject(routeRequestObject.CoordinatesStart, routeRequestObject.CoordinatesDestination, routeRequestObject.StartTime);
         return new JsonResult(generatedResponse);
+    }
+
+    [HttpGet("test")]
+    public IActionResult TestResponse(){
+        return Ok();
     }
 
 }

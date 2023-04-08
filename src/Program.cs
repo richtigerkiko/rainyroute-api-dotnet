@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using rainyroute.Models.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Configuration.SetBasePath($"{Directory.GetCurrentDirectory()}/src/").AddJsonFile("appsettings.json").Build();
 
 // Add Cors from appsettings.json
 var corsAllowedUrls = builder.Configuration["CORS:AllowedUrls"]?.Split(",") ?? new string[] { };
@@ -22,6 +25,10 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
     });
+
+builder.Services.Configure<RavenDbConfiguration>(builder.Configuration.GetSection("RavenDb"));
+
+builder.Services.AddSingleton<RavenDbContext>();
 
 var app = builder.Build();
 
@@ -41,6 +48,7 @@ app.UseRequestLocalization(
         SupportedUICultures = new List<CultureInfo> { new CultureInfo(defaultCulture) }
     }
 );
+
 
 app.UseHttpsRedirection();
 

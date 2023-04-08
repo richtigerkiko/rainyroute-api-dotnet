@@ -12,16 +12,16 @@ public class WeatherRouteController : ControllerBase
     private readonly ILogger<WeatherRouteController> _logger;
     private readonly IConfiguration _config;
 
-    private static RavenDbContext _ravenDbService;
+    private static RavenDbContext _ravenDbContext;
 
     private readonly HttpClient httpClient;
 
-    public WeatherRouteController(ILogger<WeatherRouteController> logger, IConfiguration config, RavenDbContext ravenDbService)
+    public WeatherRouteController(ILogger<WeatherRouteController> logger, IConfiguration config, RavenDbContext ravenDbContext)
     {
         _logger = logger;
         _config = config;
 
-        _ravenDbService = ravenDbService;
+        _ravenDbContext = ravenDbContext;
         // Initialize new httpClient for all child services to use
         httpClient = new HttpClient(new SocketsHttpHandler
         {
@@ -32,7 +32,7 @@ public class WeatherRouteController : ControllerBase
     [HttpPost("GetWeatherRoute")]
     public async Task<IActionResult> GetWeatherRoute([FromBody] RouteRequestObject routeRequestObject)
     {
-        var routeService = new RouteServices(_logger, _config, httpClient);
+        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
 
         var generatedResponse = await routeService.GetWeatherRouteResponseObject(routeRequestObject.CoordinatesStart, routeRequestObject.CoordinatesDestination, routeRequestObject.StartTime);
         return new JsonResult(generatedResponse);
@@ -42,13 +42,16 @@ public class WeatherRouteController : ControllerBase
     [HttpPost("GetNewWeatherRoute")]
     public async Task<IActionResult> GetWeatherRouteWithDb([FromBody] RouteRequestObject routeRequestObject)
     {
-        var routeService = new RouteServices(_logger, _config, httpClient);
+        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
+
+
+        return new JsonResult( await routeService.GetNewWeatherRouteResponse(routeRequestObject));
     }
 
     [HttpGet("test")]
     public async Task<IActionResult> TestResponseAsync()
     {
-        var testthing = new Generator(_ravenDbService, _logger, _config, httpClient);
+        var testthing = new Generator(_ravenDbContext, _logger, _config, httpClient);
 
         testthing.GenerateGermanyBoundingBoxDocuments();
         await testthing.GenerateWeatherForBoundingBoxDocumentsAsync();

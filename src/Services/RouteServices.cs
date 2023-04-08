@@ -2,14 +2,49 @@ using rainyroute.Models;
 using rainyroute.Models.ResponseObjects;
 using rainyroute.Models.ResponseObjects.ExternalApiResponses.OSRMApi;
 using PolylinerNet;
+using rainyroute.Models.RequestObject;
+using rainyroute.Persistance;
 
 namespace rainyroute.Services;
 
 public class RouteServices : BaseService
 {
-    public RouteServices(ILogger logger, IConfiguration config, HttpClient httpClient) : base(logger, config, httpClient)
+
+    RavenDbContext _dbContext;
+
+    public RouteServices(ILogger logger, IConfiguration config, HttpClient httpClient, RavenDbContext ravenDbContext) : base(logger, config, httpClient)
     {
+        _dbContext = ravenDbContext;
     }
+
+    public async Task<NewWeatherRouteResponse> GetNewWeatherRouteResponse(RouteRequestObject request)
+    {
+        // Calculate Route
+        var openStreetmapApiService = new OpenStreetmapApiService(_logger, _config, _httpClient);
+
+        var calculatedRoute = await openStreetmapApiService.GetOSRMApiResult(request.CoordinatesStart, request.CoordinatesDestination);
+
+        // get coordinates from polyline
+        var geoCoordinateList = DecodeGooglePolyline(calculatedRoute.Routes[0].Geometry);
+
+        var dbService = new DbService(_dbContext);
+
+        var bboxes = dbService.GetCrossingBoundingBoxes(geoCoordinateList);
+
+
+        return new NewWeatherRouteResponse(){
+            CoordinatesStart = request.CoordinatesStart.ToTuple(),
+            CoordinatesDestination = request.CoordinatesDestination.ToTuple(),
+            PassedBoundingBoxes = bboxes,
+            PolyLine = calculatedRoute.Routes[0].Geometry,
+            StartTime = request.StartTime,
+            ProjectedFinishTime = request.StartTime.AddSeconds(calculatedRoute.Routes[0].Duration)
+        };
+    }
+
+
+
+
 
 
     /// <summary>
@@ -61,6 +96,9 @@ public class RouteServices : BaseService
     }
 
 
+
+
+
     /// <summary>
     /// Lowers the resolution of the osrm response
     /// </summary>
@@ -98,6 +136,20 @@ public class RouteServices : BaseService
         }
 
         return resultObj;
+    }
+
+    private List<Tuple<double, double>> DecodeGooglePolyline(string polyline)
+    {
+        var polyliner = new Polyliner();
+
+        var coordinateList = new List<Tuple<double, double>>();
+
+        var decodeResult = polyliner.Decode(polyline);
+        
+        foreach (var point in decodeResult) coordinateList.Add(new Tuple<double, double>(point.Latitude, point.Longitude));
+
+        return coordinateList;
+
     }
 
     private List<GeoCoordinate> GetCoordinatesFromPolyline(string polyLine)

@@ -12,9 +12,13 @@ public class WeatherRouteBoundingBox : IBoundingBox
     public List<WeatherForeCastHour> WeatherForeCastHours { get; set; } = new List<WeatherForeCastHour>();
 
 
-    public void ContainsPoint(double latidude, double longitude)
+    public bool ContainsPoint(double latidude, double longitude)
     {
-        throw new NotImplementedException();
+        return latidude >= MinCoordinate.Item1 && latidude <= MaxCoordinate.Item1 && longitude >= MinCoordinate.Item2 && longitude <= MaxCoordinate.Item2;
+    }
+
+    public bool ContainsPoint(Tuple<double, double> coordinates){
+        return ContainsPoint(coordinates.Item1, coordinates.Item2);
     }
 
     public double DistanceTo(IBoundingBox other)

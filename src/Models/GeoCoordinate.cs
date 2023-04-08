@@ -100,6 +100,9 @@ public class GeoCoordinate : IEquatable<GeoCoordinate>
         CardinalDirection = GetCardinalDirection(destination);
     }
 
+    public Tuple<double, double> ToTuple(){
+        return new Tuple<double, double>(Latitude, Longitude);
+    }
 
     // ist noch falsch
     public CardinalDirection GetCardinalDirection(GeoCoordinate other)

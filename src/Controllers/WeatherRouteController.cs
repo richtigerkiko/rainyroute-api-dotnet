@@ -38,6 +38,13 @@ public class WeatherRouteController : ControllerBase
         return new JsonResult(generatedResponse);
     }
 
+
+    [HttpPost("GetNewWeatherRoute")]
+    public async Task<IActionResult> GetWeatherRouteWithDb([FromBody] RouteRequestObject routeRequestObject)
+    {
+        var routeService = new RouteServices(_logger, _config, httpClient);
+    }
+
     [HttpGet("test")]
     public async Task<IActionResult> TestResponseAsync()
     {
@@ -45,8 +52,6 @@ public class WeatherRouteController : ControllerBase
 
         testthing.GenerateGermanyBoundingBoxDocuments();
         await testthing.GenerateWeatherForBoundingBoxDocumentsAsync();
-
-        testthing.GenerateGermanyBoundingBoxDocuments();
 
         // var distanceBetweenFirstTwo = subBoxes[0].DistanceTo(subBoxes[1]);
         return Ok();

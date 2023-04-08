@@ -11,6 +11,6 @@ public class NewWeatherRouteResponse
 
     public string PolyLine { get; set; }
 
-    public List<WeatherBoundingBox> PassedBoundingBoxes { get; set; }
+    public List<WeatherRouteBoundingBox> PassedBoundingBoxes { get; set; }
 
 }

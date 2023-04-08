@@ -4,6 +4,7 @@ namespace rainyroute.Models.Data;
 
 public class WeatherBoundingBox : IBoundingBox
 {
+
     public string Id { get; set; }
     public GeoCoordinate MinCoordinate { get; set; } 
     public GeoCoordinate MaxCoordinate { get; set; }
@@ -15,6 +16,11 @@ public class WeatherBoundingBox : IBoundingBox
     public bool ContainsPoint(double latidude, double longitude)
     {
         return latidude >= MinCoordinate.Latitude && latidude <= MaxCoordinate.Latitude && longitude >= MinCoordinate.Longitude && longitude <= MaxCoordinate.Longitude;
+    }
+
+    public bool ContainsPoint(GeoCoordinate coordinate)
+    {
+        return ContainsPoint(coordinate.Latitude, coordinate.Longitude);
     }
 
     public bool ContainsPoint(Tuple<double, double> coordinates){

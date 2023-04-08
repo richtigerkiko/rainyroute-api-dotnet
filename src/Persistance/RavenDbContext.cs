@@ -44,14 +44,14 @@ public class RavenDbContext : IDisposable
         // Create indexed collections
         _documentStore.Maintenance.Send(new PutIndexesOperation(new[] { new IndexDefinition
         {
-            Name = "WeatherForeCastHours/WeatherRouteBoundingBoxId",
-            Maps = { "from wf in docs.WeatherForeCastHours select new { WeatherRouteBoundingBoxId = wf.WeatherRouteBoundingBoxId }" }
+            Name = "WeatherForeCastHours/WeatherBoundingBox",
+            Maps = { "from wf in docs.WeatherForeCastHours select new { WeatherBoundingBox = wf.WeatherBoundingBoxId }" }
         } }));
 
         _documentStore.Maintenance.Send(new PutIndexesOperation(new[] { new IndexDefinition
         {
-            Name = "WeatherRouteBoundingBoxes/WeatherForeCastHours",
-            Maps = { "from wrb in docs.WeatherRouteBoundingBoxes select new { WeatherForeCastHours = wrb.WeatherForeCastHours }" }
+            Name = "WeatherBoundingBox/WeatherForeCastHours",
+            Maps = { "from wrb in docs.WeatherBoundingBox select new { WeatherForeCastHours = wrb.WeatherForeCastHours }" }
         } }));
 
     }

@@ -4,6 +4,7 @@ using rainyroute.Models.ResponseObjects.ExternalApiResponses.OSRMApi;
 using PolylinerNet;
 using rainyroute.Models.RequestObject;
 using rainyroute.Persistance;
+using rainyroute.Models.Data;
 
 namespace rainyroute.Services;
 
@@ -31,6 +32,13 @@ public class RouteServices : BaseService
 
         var bboxes = dbService.GetCrossingBoundingBoxes(geoCoordinateList);
 
+        
+        foreach(var box in bboxes){
+            var index = geoCoordinateList.IndexOf(box.CoordinateClostestToCenter);
+            box.TotalDurationClosestToCenter = calculatedRoute.Routes[0].Legs[0].Annotation.Duration.GetRange(0, index).Sum();
+            box.TimeClosestToCenter = request.StartTime.AddSeconds(box.TotalDurationClosestToCenter);
+
+        }
 
         return new NewWeatherRouteResponse(){
             CoordinatesStart = request.CoordinatesStart,
@@ -43,7 +51,26 @@ public class RouteServices : BaseService
     }
 
 
+    private GeoCoordinate FindClosestGeoCoordinate(List<GeoCoordinate> list1, List<GeoCoordinate> list2)
+    {
+        GeoCoordinate closestCoord = null;
+        double minDistance = double.MaxValue;
 
+        foreach (var coord1 in list1)
+        {
+            foreach (var coord2 in list2)
+            {
+                double distance = coord1.GetDistanceTo(coord2);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestCoord = coord1;
+                }
+            }
+        }
+
+        return closestCoord;
+    }
 
 
 
@@ -138,21 +165,8 @@ public class RouteServices : BaseService
         return resultObj;
     }
 
-    private List<Tuple<double, double>> DecodeGooglePolyline(string polyline)
-    {
-        var polyliner = new Polyliner();
 
-        var coordinateList = new List<Tuple<double, double>>();
-
-        var decodeResult = polyliner.Decode(polyline);
-        
-        foreach (var point in decodeResult) coordinateList.Add(new Tuple<double, double>(point.Latitude, point.Longitude));
-
-        return coordinateList;
-
-    }
-
-    private List<GeoCoordinate> GetCoordinatesFromPolyline(string polyLine)
+    private List<GeoCoordinate> DecodeGooglePolyline(string polyLine)
     {
         var polyliner = new Polyliner();
         var returnList = new List<GeoCoordinate>();
@@ -171,7 +185,7 @@ public class RouteServices : BaseService
 
     private List<WeatherRoutePoint> MergePolylineCoordinatesWithOSRMAnnotation(string polyLine, Annotation osrmAnnotation)
     {
-        var geoCoordinateList = GetCoordinatesFromPolyline(polyLine);
+        var geoCoordinateList = DecodeGooglePolyline(polyLine);
 
         var returnList = new List<WeatherRoutePoint>();
 

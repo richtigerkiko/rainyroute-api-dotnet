@@ -25,10 +25,6 @@ public class Generator : BaseService
 
         var boundingBoxesOfGermany = boundingBoxGermany.DivideIntoSmallerBoxes(100).OfType<WeatherBoundingBox>().ToList();
 
-        foreach (var boundingbox in boundingBoxesOfGermany)
-        {
-
-        }
 
         using (var session = Store.OpenSession())
         {
@@ -72,7 +68,7 @@ public class Generator : BaseService
                         {
                             box.WeatherForeCastHours.Add(new WeatherForeCastHour(h));
                             var weatherForecastHour = new WeatherForeCastHour(h);
-                            weatherForecastHour.WeatherRouteBoundingBox = box.Id;
+                            weatherForecastHour.WeatherBoundingBox = box.Id;
 
                             session.Store(weatherForecastHour);
 

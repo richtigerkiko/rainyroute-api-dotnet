@@ -27,18 +27,9 @@ namespace rainyroute.Services
             return geoWeatherListWithoutWeather;
         }
 
-        public async Task<WeatherApiBulkResponse> GetWeatherApiBulkResponse(List<WeatherRouteBoundingBox> boundingBoxes)
+        public async Task<WeatherApiBulkResponse> GetWeatherApiBulkResponse(List<WeatherBoundingBox> boundingBoxes)
         {
-            var listOfTuples = boundingBoxes.Select(x => x.CenterOfBoundingBox);
-
-            var geoCoordinates = new List<GeoCoordinate>();
-            foreach (var tuple in listOfTuples){
-                geoCoordinates.Add(new GeoCoordinate()
-                {
-                    Latitude = tuple.Item1,
-                    Longitude = tuple.Item2
-                });
-            }
+            var geoCoordinates = boundingBoxes.Select(x => x.CenterOfBoundingBox).ToList();
             
             return await GetWeatherApiBulkResponse(geoCoordinates);
         }

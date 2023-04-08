@@ -13,12 +13,12 @@ namespace rainyroute.Services
             _store = dbContext._documentStore;
         }
 
-        public List<WeatherRouteBoundingBox> GetCrossingBoundingBoxes(List<Tuple<double, double>> coordinates)
+        public List<WeatherBoundingBox> GetCrossingBoundingBoxes(List<Tuple<double, double>> coordinates)
         {
-            var boxList = new List<WeatherRouteBoundingBox>();
+            var boxList = new List<WeatherBoundingBox>();
             using(var session = _store.OpenSession()){
 
-                var allBoxes = session.Query<WeatherRouteBoundingBox>().ToList();
+                var allBoxes = session.Query<WeatherBoundingBox>().ToList();
 
                 foreach(var coordinate in coordinates){
                     var box = allBoxes.Where(x => x.ContainsPoint(coordinate)).FirstOrDefault();

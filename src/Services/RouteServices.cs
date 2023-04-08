@@ -33,8 +33,8 @@ public class RouteServices : BaseService
 
 
         return new NewWeatherRouteResponse(){
-            CoordinatesStart = request.CoordinatesStart.ToTuple(),
-            CoordinatesDestination = request.CoordinatesDestination.ToTuple(),
+            CoordinatesStart = request.CoordinatesStart,
+            CoordinatesDestination = request.CoordinatesDestination,
             PassedBoundingBoxes = bboxes,
             PolyLine = calculatedRoute.Routes[0].Geometry,
             StartTime = request.StartTime,

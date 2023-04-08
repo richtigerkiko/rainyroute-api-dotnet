@@ -2,14 +2,14 @@ namespace rainyroute.Models.Interfaces;
 
 public interface IBoundingBox
 {
-    public Tuple<double, double> MinCoordinate { get; set; }
-    public Tuple<double, double> MaxCoordinate { get; set; }
-    public Tuple<double, double> CenterOfBoundingBox { get; }
+    public GeoCoordinate MinCoordinate { get; set; }
+    public GeoCoordinate MaxCoordinate { get; set; }
+    public GeoCoordinate CenterOfBoundingBox { get; }
 
     bool ContainsPoint(double latidude, double longitude);
-    // Tuple<double, double> CenterOfBoundingBox();
+    // GeoCoordinate CenterOfBoundingBox();
 
     List<IBoundingBox> DivideIntoSmallerBoxes(double boxSizeSqKm);
 
-    double DistanceTo(IBoundingBox other);
+    double GetDistanceTo(IBoundingBox other);
 }

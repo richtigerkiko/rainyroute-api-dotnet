@@ -1,3 +1,4 @@
+using rainyroute.Models;
 using rainyroute.Models.Data;
 using rainyroute.Models.Interfaces;
 using rainyroute.Services;
@@ -16,13 +17,13 @@ public class Generator : BaseService
 
     public void GenerateGermanyBoundingBoxDocuments()
     {
-        var boundingBoxGermany = new WeatherRouteBoundingBox()
+        var boundingBoxGermany = new WeatherBoundingBox()
         {
-            MinCoordinate = new Tuple<double, double>(47.2701, 5.8663),
-            MaxCoordinate = new Tuple<double, double>(55.0992, 15.0419)
+            MinCoordinate = new GeoCoordinate(47.2701, 5.8663),
+            MaxCoordinate = new GeoCoordinate(55.0992, 15.0419)
         };
 
-        var boundingBoxesOfGermany = boundingBoxGermany.DivideIntoSmallerBoxes(300).OfType<WeatherRouteBoundingBox>().ToList();
+        var boundingBoxesOfGermany = boundingBoxGermany.DivideIntoSmallerBoxes(100).OfType<WeatherBoundingBox>().ToList();
 
         foreach (var boundingbox in boundingBoxesOfGermany)
         {
@@ -45,9 +46,9 @@ public class Generator : BaseService
         using (var session = Store.OpenSession())
         {
             // Get all BoundingBoxes
-            var boundingBoxes = session.Query<WeatherRouteBoundingBox>().ToList();
+            var boundingBoxes = session.Query<WeatherBoundingBox>().ToList();
 
-            var test = session.Load<WeatherRouteBoundingBox>("WeatherRouteBoundingBoxes/164-A");
+            var test = session.Load<WeatherBoundingBox>("WeatherRouteBoundingBoxes/164-A");
 
             var weatherapi = new WeatherApiService(_logger, _config, _httpClient);
 
@@ -82,16 +83,5 @@ public class Generator : BaseService
             }
             session.SaveChanges();
         }
-    }
-
-    private List<IBoundingBox> GenerateGermanySubBoxes()
-    {
-        var boundingBoxGermany = new WeatherRouteBoundingBox()
-        {
-            MinCoordinate = new Tuple<double, double>(47.2701, 5.8663),
-            MaxCoordinate = new Tuple<double, double>(55.0992, 15.0419)
-        };
-
-        return boundingBoxGermany.DivideIntoSmallerBoxes(300);
     }
 }

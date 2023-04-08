@@ -5,8 +5,8 @@ namespace rainyroute.Models.Data;
 public class WeatherRouteBoundingBox : IBoundingBox
 {
     public string Id { get; set; }
-    public Tuple<double, double> MinCoordinate { get; set; } = new Tuple<double, double>(0, 0);
-    public Tuple<double, double> MaxCoordinate { get; set; } = new Tuple<double, double>(0, 0);
+    public Tuple<double, double> MinCoordinate { get; set; } 
+    public Tuple<double, double> MaxCoordinate { get; set; }
     public Tuple<double, double> CenterOfBoundingBox => new Tuple<double, double>((MinCoordinate.Item1 + MaxCoordinate.Item1) / 2,(MinCoordinate.Item2 + MaxCoordinate.Item2) / 2);
 
     public List<WeatherForeCastHour> WeatherForeCastHours { get; set; } = new List<WeatherForeCastHour>();

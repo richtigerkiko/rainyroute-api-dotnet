@@ -4,6 +4,8 @@ namespace rainyroute.Models.Data;
 
 public class WeatherForeCastHour
 {
+    public string Id { get; set; }
+    public string WeatherRouteBoundingBox { get; set; }
     public DateTime Time { get; set; }
     public int ChanceOfRain { get; set; }
     public int WindDegree { get; set; }

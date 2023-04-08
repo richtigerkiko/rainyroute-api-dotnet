@@ -39,10 +39,13 @@ public class WeatherRouteController : ControllerBase
     }
 
     [HttpGet("test")]
-    public IActionResult TestResponse()
+    public async Task<IActionResult> TestResponseAsync()
     {
-        var testthing = new Generator(_ravenDbService);
-        
+        var testthing = new Generator(_ravenDbService, _logger, _config, httpClient);
+
+        testthing.GenerateGermanyBoundingBoxDocuments();
+        await testthing.GenerateWeatherForBoundingBoxDocumentsAsync();
+
         testthing.GenerateGermanyBoundingBoxDocuments();
 
         // var distanceBetweenFirstTwo = subBoxes[0].DistanceTo(subBoxes[1]);

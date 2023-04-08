@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using rainyroute.Models;
+using rainyroute.Models.Data;
 using rainyroute.Models.ResponseObjects.ExternalApiResponses.WeatherAPI;
 
 namespace rainyroute.Services
@@ -24,6 +25,22 @@ namespace rainyroute.Services
             }
 
             return geoWeatherListWithoutWeather;
+        }
+
+        public async Task<WeatherApiBulkResponse> GetWeatherApiBulkResponse(List<WeatherRouteBoundingBox> boundingBoxes)
+        {
+            var listOfTuples = boundingBoxes.Select(x => x.CenterOfBoundingBox);
+
+            var geoCoordinates = new List<GeoCoordinate>();
+            foreach (var tuple in listOfTuples){
+                geoCoordinates.Add(new GeoCoordinate()
+                {
+                    Latitude = tuple.Item1,
+                    Longitude = tuple.Item2
+                });
+            }
+            
+            return await GetWeatherApiBulkResponse(geoCoordinates);
         }
 
         private async Task<WeatherApiBulkResponse> GetWeatherApiBulkResponse(List<GeoCoordinate> coordinates)

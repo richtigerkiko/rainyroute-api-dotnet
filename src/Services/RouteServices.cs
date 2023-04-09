@@ -21,26 +21,19 @@ public class RouteServices : BaseService
     public async Task<NewWeatherRouteResponse> GetNewWeatherRouteResponse(RouteRequestObject request)
     {
         // Calculate Route
-        var openStreetmapApiService = new OpenStreetmapApiService(_logger, _config, _httpClient);
-
-        var calculatedRoute = await openStreetmapApiService.GetOSRMApiResult(request.CoordinatesStart, request.CoordinatesDestination);
+        OSRMApiResult calculatedRoute = await CallOSRMApi(request);
 
         // get coordinates from polyline
         var geoCoordinateList = DecodeGooglePolyline(calculatedRoute.Routes[0].Geometry);
 
-        var dbService = new DbService(_dbContext);
+        // Get all Boundingboxes from db
+        List<WeatherRouteBoundingBox> bboxes = GetBoundingBoxesFromDb(geoCoordinateList);
 
-        var bboxes = dbService.GetCrossingBoundingBoxes(geoCoordinateList);
+        // Zeiten zu den Bounding Boxes hinzufügen
+        AddTimingsToBoundingBoxList(request, calculatedRoute, geoCoordinateList, bboxes);
 
-        
-        foreach(var box in bboxes){
-            var index = geoCoordinateList.IndexOf(box.CoordinateClostestToCenter);
-            box.TotalDurationClosestToCenter = calculatedRoute.Routes[0].Legs[0].Annotation.Duration.GetRange(0, index).Sum();
-            box.TimeClosestToCenter = request.StartTime.AddSeconds(box.TotalDurationClosestToCenter);
-
-        }
-
-        return new NewWeatherRouteResponse(){
+        return new NewWeatherRouteResponse()
+        {
             CoordinatesStart = request.CoordinatesStart,
             CoordinatesDestination = request.CoordinatesDestination,
             PassedBoundingBoxes = bboxes,
@@ -48,6 +41,32 @@ public class RouteServices : BaseService
             StartTime = request.StartTime,
             ProjectedFinishTime = request.StartTime.AddSeconds(calculatedRoute.Routes[0].Duration)
         };
+    }
+
+    private void AddTimingsToBoundingBoxList(RouteRequestObject request, OSRMApiResult calculatedRoute, List<GeoCoordinate> geoCoordinateList, List<WeatherRouteBoundingBox> bboxes)
+    {
+        foreach (var box in bboxes)
+        {
+            var index = geoCoordinateList.IndexOf(box.CoordinateClostestToCenter);
+            box.TotalDurationClosestToCenter = calculatedRoute.Routes[0].Legs[0].Annotation.Duration.GetRange(0, index).Sum();
+            box.TimeClosestToCenter = request.StartTime.AddSeconds(box.TotalDurationClosestToCenter);
+        }
+    }
+
+    private List<WeatherRouteBoundingBox> GetBoundingBoxesFromDb(List<GeoCoordinate> geoCoordinateList)
+    {
+        var dbService = new DbService(_dbContext);
+
+        var bboxes = dbService.GetCrossingBoundingBoxes(geoCoordinateList);
+        return bboxes;
+    }
+
+    private async Task<OSRMApiResult> CallOSRMApi(RouteRequestObject request)
+    {
+        var openStreetmapApiService = new OpenStreetmapApiService(_logger, _config, _httpClient);
+
+        var calculatedRoute = await openStreetmapApiService.GetOSRMApiResult(request.CoordinatesStart, request.CoordinatesDestination);
+        return calculatedRoute;
     }
 
     public List<WeatherBoundingBox> GetFullWeatherMapResponse()

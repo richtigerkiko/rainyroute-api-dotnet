@@ -39,7 +39,7 @@ namespace rainyroute.Services
                 var queryParams = new Dictionary<string, string?>(){
                 {"key", _config["WeatherApiKey"]},
                 {"q", "bulk"},
-                {"days", "1"}
+                {"days", "5"}
                 };
 
                 var urlWithQuery = QueryHelpers.AddQueryString(url, queryParams);

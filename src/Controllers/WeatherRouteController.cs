@@ -22,6 +22,7 @@ public class WeatherRouteController : ControllerBase
         _config = config;
 
         _ravenDbContext = ravenDbContext;
+        
         // Initialize new httpClient for all child services to use
         httpClient = new HttpClient(new SocketsHttpHandler
         {
@@ -47,7 +48,8 @@ public class WeatherRouteController : ControllerBase
         return new JsonResult( routeService.GetFullWeatherMapResponse());
     }
 
-    [HttpGet("test")]
+
+    [HttpGet("GenerateDB")]
     public async Task<IActionResult> TestResponseAsync()
     {
         var testthing = new Generator(_ravenDbContext, _logger, _config, httpClient);

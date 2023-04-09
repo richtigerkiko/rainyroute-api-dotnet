@@ -12,13 +12,15 @@ public class RouteServices : BaseService
 {
 
     RavenDbContext _dbContext;
+    DbService _dbService;
 
     public RouteServices(ILogger logger, IConfiguration config, HttpClient httpClient, RavenDbContext ravenDbContext) : base(logger, config, httpClient)
     {
         _dbContext = ravenDbContext;
+        _dbService = new DbService(_dbContext);
     }
 
-    public async Task<NewWeatherRouteResponse> GetNewWeatherRouteResponse(RouteRequestObject request)
+    public async Task<NewWeatherRouteResponse> GetWeatherRouteResponseSingleDayWeather(RouteRequestObject request)
     {
         // Calculate Route
         OSRMApiResult calculatedRoute = await CallOSRMApi(request);
@@ -27,7 +29,7 @@ public class RouteServices : BaseService
         var geoCoordinateList = DecodeGooglePolyline(calculatedRoute.Routes[0].Geometry);
 
         // Get all Boundingboxes from db
-        List<WeatherRouteBoundingBox> bboxes = GetBoundingBoxesFromDb(geoCoordinateList);
+        List<WeatherRouteBoundingBox> bboxes = GetCrossingBoundingBoxesAndWeatherOfSpecificDate(geoCoordinateList, request.StartTime);
 
         // Zeiten zu den Bounding Boxes hinzufügen
         AddTimingsToBoundingBoxList(request, calculatedRoute, geoCoordinateList, bboxes);
@@ -43,6 +45,25 @@ public class RouteServices : BaseService
         };
     }
 
+    private List<WeatherRouteBoundingBox> GetCrossingBoundingBoxesAndWeatherOfSpecificDate(List<GeoCoordinate> coordinates, DateTime specificDate)
+    {
+        var boxList = new List<WeatherRouteBoundingBox>();
+
+        var allBoxes = _dbService.GetAllWeatherBoundingBoxes(specificDate);
+        foreach (var coordinate in coordinates)
+        {
+            var box = allBoxes.Where(x => x.ContainsPoint(coordinate)).FirstOrDefault();
+
+            if (box != null && !(boxList.Any(x => x.Id == box.Id)))
+            {
+                boxList.Add(new WeatherRouteBoundingBox(box));
+            }
+
+            boxList.Last().CoordinatesInBoundingBox.Add(coordinate);
+        }
+        return boxList;
+    }
+
     private void AddTimingsToBoundingBoxList(RouteRequestObject request, OSRMApiResult calculatedRoute, List<GeoCoordinate> geoCoordinateList, List<WeatherRouteBoundingBox> bboxes)
     {
         foreach (var box in bboxes)
@@ -51,14 +72,6 @@ public class RouteServices : BaseService
             box.TotalDurationClosestToCenter = calculatedRoute.Routes[0].Legs[0].Annotation.Duration.GetRange(0, index).Sum();
             box.TimeClosestToCenter = request.StartTime.AddSeconds(box.TotalDurationClosestToCenter);
         }
-    }
-
-    private List<WeatherRouteBoundingBox> GetBoundingBoxesFromDb(List<GeoCoordinate> geoCoordinateList)
-    {
-        var dbService = new DbService(_dbContext);
-
-        var bboxes = dbService.GetCrossingBoundingBoxes(geoCoordinateList);
-        return bboxes;
     }
 
     private async Task<OSRMApiResult> CallOSRMApi(RouteRequestObject request)
@@ -73,7 +86,7 @@ public class RouteServices : BaseService
     {
         var dbService = new DbService(_dbContext);
 
-        return dbService.GetFullWeatherMap();
+        return dbService.GetAllWeatherBoundingBoxes();
     }
 
     private List<GeoCoordinate> DecodeGooglePolyline(string polyLine)

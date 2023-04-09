@@ -16,38 +16,26 @@ internal class DbService
         _store = dbContext._documentStore;
     }
 
-    public List<WeatherRouteBoundingBox> GetCrossingBoundingBoxes(List<GeoCoordinate> coordinates)
+    public List<WeatherBoundingBox> GetAllWeatherBoundingBoxes()
     {
-        var boxList = new List<WeatherRouteBoundingBox>();
         using (var session = _store.OpenSession())
         {
-
             var allBoxes = session.Query<WeatherBoundingBox>().ToList();
-
-            // var boundingBoxOfAllCoordinates = new WeatherBoundingBox().GetBoundingBox(coordinates);
-            // var spatialTest = session.Query<WeatherBoundingBox, WeatherBoundingBoxIndex>()
-            //                         .Spatial(x => x.CenterOfBoundingBox, criteria => criteria.Within(boundingBoxOfAllCoordinates.ToShapeWkt(),))
-            //                         .ToList();
-
-            foreach (var coordinate in coordinates)
-            {
-                var box = allBoxes.Where(x => x.ContainsPoint(coordinate)).FirstOrDefault();
-
-                if (box != null && !(boxList.Any(x => x.Id == box.Id)))
-                {
-                    boxList.Add(new WeatherRouteBoundingBox(box));
-                }
-
-                boxList.Last().CoordinatesInBoundingBox.Add(coordinate);
-            }
+            return allBoxes;
         }
-        return boxList;
     }
-    public List<WeatherBoundingBox> GetFullWeatherMap()
+
+    public List<WeatherBoundingBox> GetAllWeatherBoundingBoxes(DateTime specificDate)
     {
-        using (var session = _store.OpenSession())
+        var allBoxes = GetAllWeatherBoundingBoxes().Select(x => new WeatherBoundingBox
         {
-            return session.Query<WeatherBoundingBox>().ToList();
-        }
+            Id = x.Id,
+            MinCoordinate = x.MinCoordinate,
+            MaxCoordinate = x.MaxCoordinate,
+            WeatherForeCastHours = x.WeatherForeCastHours.Where(weatherForeCastHour => weatherForeCastHour.Time.Date.DayOfYear == specificDate.Date.DayOfYear)
+        .ToList()
+        }).ToList();
+
+        return allBoxes;
     }
 }

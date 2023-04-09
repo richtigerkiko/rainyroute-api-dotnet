@@ -37,7 +37,7 @@ public class WeatherRouteController : ControllerBase
         var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
 
 
-        return new JsonResult( await routeService.GetNewWeatherRouteResponse(routeRequestObject));
+        return new JsonResult( await routeService.GetWeatherRouteResponseSingleDayWeather(routeRequestObject));
     }
 
     [HttpGet("GetFullWeatherMap")]

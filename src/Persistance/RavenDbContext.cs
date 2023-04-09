@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using rainyroute.Models.Configurations;
+using rainyroute.Persistance.Indexes;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations.Indexes;
@@ -42,18 +43,19 @@ public class RavenDbContext : IDisposable
         _documentStore.Maintenance.Server.Send(new CreateDatabaseOperation(new DatabaseRecord(_config.DbName)));
 
         // Create indexed collections
-        _documentStore.Maintenance.Send(new PutIndexesOperation(new[] { new IndexDefinition
-        {
-            Name = "WeatherForeCastHours/WeatherBoundingBox",
-            Maps = { "from wf in docs.WeatherForeCastHours select new { WeatherBoundingBox = wf.WeatherBoundingBoxId }" }
-        } }));
-
-        _documentStore.Maintenance.Send(new PutIndexesOperation(new[] { new IndexDefinition
-        {
-            Name = "WeatherBoundingBox/WeatherForeCastHours",
-            Maps = { "from wrb in docs.WeatherBoundingBox select new { WeatherForeCastHours = wrb.WeatherForeCastHours }" }
-        } }));
-
+        _documentStore.Maintenance.Send(new PutIndexesOperation(new[] {
+            new IndexDefinition
+            {
+                Name = "WeatherForeCastHours/WeatherBoundingBox",
+                Maps = { "from wf in docs.WeatherForeCastHours select new { WeatherBoundingBox = wf.WeatherBoundingBoxId }" }
+            },
+            new IndexDefinition
+            {
+                Name = "WeatherBoundingBox/WeatherForeCastHours",
+                Maps = { "from wrb in docs.WeatherBoundingBox select new { WeatherForeCastHours = wrb.WeatherForeCastHours }" }
+            },
+            new WeatherBoundingBoxIndex().CreateIndexDefinition()
+        }));
     }
 
     public void Dispose()

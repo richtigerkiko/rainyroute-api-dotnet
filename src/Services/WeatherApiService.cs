@@ -12,21 +12,6 @@ namespace rainyroute.Services
         {
         }
 
-        public async Task<List<WeatherRoutePoint>> AddWeatherToGeoWeatherList(List<WeatherRoutePoint> geoWeatherListWithoutWeather)
-        {
-
-            var coordinateArray = geoWeatherListWithoutWeather.Select(x => x.Coordinates).ToList();
-
-            var weatherApiResult = await GetWeatherApiBulkResponse(coordinateArray);
-
-            for (int i = 0; i < geoWeatherListWithoutWeather.Count; i++)
-            {
-                geoWeatherListWithoutWeather[i].FillHour(weatherApiResult.Bulk.Where(x => x.Query.CustomId == i.ToString()).FirstOrDefault().Query.Forecast.Forecastday[0].Hour, DateTime.Now);
-            }
-
-            return geoWeatherListWithoutWeather;
-        }
-
         public async Task<WeatherApiBulkResponse> GetWeatherApiBulkResponse(List<WeatherBoundingBox> boundingBoxes)
         {
             var geoCoordinates = boundingBoxes.Select(x => x.CenterOfBoundingBox).ToList();

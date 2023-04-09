@@ -11,5 +11,9 @@ public interface IBoundingBox
 
     List<IBoundingBox> DivideIntoSmallerBoxes(double boxSizeSqKm);
 
+    IBoundingBox GetBoundingBox(List<GeoCoordinate> coordinates);
+
     double GetDistanceTo(IBoundingBox other);
+
+    string ToShapeWkt();
 }

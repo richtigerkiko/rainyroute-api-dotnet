@@ -29,15 +29,6 @@ public class WeatherRouteController : ControllerBase
         });
     }
 
-    [HttpPost("GetWeatherRoute")]
-    public async Task<IActionResult> GetWeatherRoute([FromBody] RouteRequestObject routeRequestObject)
-    {
-        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
-
-        var generatedResponse = await routeService.GetWeatherRouteResponseObject(routeRequestObject.CoordinatesStart, routeRequestObject.CoordinatesDestination, routeRequestObject.StartTime);
-        return new JsonResult(generatedResponse);
-    }
-
 
     [HttpPost("GetNewWeatherRoute")]
     public async Task<IActionResult> GetWeatherRouteWithDb([FromBody] RouteRequestObject routeRequestObject)
@@ -46,6 +37,14 @@ public class WeatherRouteController : ControllerBase
 
 
         return new JsonResult( await routeService.GetNewWeatherRouteResponse(routeRequestObject));
+    }
+
+    [HttpGet("GetFullWeatherMap")]
+    public IActionResult GetFullWeatherMap()
+    {
+        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
+
+        return new JsonResult( routeService.GetFullWeatherMapResponse());
     }
 
     [HttpGet("test")]

@@ -6,11 +6,12 @@ public class WeatherBoundingBox : IBoundingBox
 {
 
     public string Id { get; set; }
-    public GeoCoordinate MinCoordinate { get; set; } 
+    public GeoCoordinate MinCoordinate { get; set; }
     public GeoCoordinate MaxCoordinate { get; set; }
-    public GeoCoordinate CenterOfBoundingBox => new GeoCoordinate((MinCoordinate.Latitude + MaxCoordinate.Latitude) / 2,(MinCoordinate.Longitude + MaxCoordinate.Longitude) / 2);
+    public GeoCoordinate CenterOfBoundingBox => new GeoCoordinate((MinCoordinate.Latitude + MaxCoordinate.Latitude) / 2, (MinCoordinate.Longitude + MaxCoordinate.Longitude) / 2);
 
     public List<WeatherForeCastHour> WeatherForeCastHours { get; set; } = new List<WeatherForeCastHour>();
+
 
 
     public bool ContainsPoint(double latidude, double longitude)
@@ -23,7 +24,8 @@ public class WeatherBoundingBox : IBoundingBox
         return ContainsPoint(coordinate.Latitude, coordinate.Longitude);
     }
 
-    public bool ContainsPoint(Tuple<double, double> coordinates){
+    public bool ContainsPoint(Tuple<double, double> coordinates)
+    {
         return ContainsPoint(coordinates.Item1, coordinates.Item2);
     }
 
@@ -64,5 +66,25 @@ public class WeatherBoundingBox : IBoundingBox
     private double ToRadians(double deg)
     {
         return deg * Math.PI / 180;
+    }
+
+    public IBoundingBox GetBoundingBox(List<GeoCoordinate> coordinates)
+    {
+        var minlat = coordinates.Min(x => x.Latitude);
+        var minlon = coordinates.Min(x => x.Longitude);
+        var maxlat = coordinates.Max(x => x.Latitude);
+        var maxlon = coordinates.Max(x => x.Longitude);
+
+
+        return new WeatherBoundingBox()
+        {
+            MinCoordinate = new GeoCoordinate(minlat, minlon),
+            MaxCoordinate = new GeoCoordinate(maxlat, maxlon)
+        };
+    }
+
+    public string ToShapeWkt()
+    {
+        return $"POLYGON(({MinCoordinate.Longitude} {MinCoordinate.Latitude}, {MinCoordinate.Longitude} {MaxCoordinate.Latitude}, {MaxCoordinate.Longitude} {MaxCoordinate.Latitude}, {MaxCoordinate.Longitude} {MinCoordinate.Latitude}, {MinCoordinate.Longitude} {MinCoordinate.Latitude}))";
     }
 }

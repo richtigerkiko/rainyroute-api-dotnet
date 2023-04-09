@@ -13,4 +13,6 @@ public class RouteRequestObject
     public GeoCoordinate CoordinatesDestination { get; set; }
 
     public DateTime StartTime { get; set; } = DateTime.Now;
+
+    public bool MinimizeResponse { get; set; } = false;
 }

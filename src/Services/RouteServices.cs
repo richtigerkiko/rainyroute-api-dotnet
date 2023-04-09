@@ -29,7 +29,7 @@ public class RouteServices : BaseService
         var geoCoordinateList = DecodeGooglePolyline(calculatedRoute.Routes[0].Geometry);
 
         // Get all Boundingboxes from db
-        List<WeatherRouteBoundingBox> bboxes = GetCrossingBoundingBoxesAndWeatherOfSpecificDate(geoCoordinateList, request.StartTime);
+        List<WeatherRouteBoundingBox> bboxes = GetCrossingBoundingBoxes(geoCoordinateList, request.StartTime);
 
         // Zeiten zu den Bounding Boxes hinzufügen
         AddTimingsToBoundingBoxList(request, calculatedRoute, geoCoordinateList, bboxes);
@@ -45,11 +45,57 @@ public class RouteServices : BaseService
         };
     }
 
-    private List<WeatherRouteBoundingBox> GetCrossingBoundingBoxesAndWeatherOfSpecificDate(List<GeoCoordinate> coordinates, DateTime specificDate)
+    public async Task<NewWeatherRouteResponse> GetWeatherRouteResponseWithMostRain(RouteRequestObject request)
+    {
+        // Calculate Route
+        OSRMApiResult calculatedRoute = await CallOSRMApi(request);
+
+        // get coordinates from polyline
+        var geoCoordinateList = DecodeGooglePolyline(calculatedRoute.Routes[0].Geometry);
+
+        // Get all Boundingboxes from db
+        List<WeatherRouteBoundingBox> bboxes = GetCrossingBoundingBoxes(geoCoordinateList);
+
+        // Zeiten zu den Bounding Boxes hinzufügen
+        AddTimingsToBoundingBoxList(request, calculatedRoute, geoCoordinateList, bboxes);
+
+        FindBestStartTimeForWeather(bboxes);
+
+        if(request.MinimizeResponse) MinimizeResponseObject(bboxes);
+
+        return new NewWeatherRouteResponse()
+        {
+            CoordinatesStart = request.CoordinatesStart,
+            CoordinatesDestination = request.CoordinatesDestination,
+            PassedBoundingBoxes = bboxes,
+            PolyLine = calculatedRoute.Routes[0].Geometry,
+            StartTime = bboxes.First().TimeClosestToCenter,
+            ProjectedFinishTime = bboxes.First().TimeClosestToCenter.AddSeconds(calculatedRoute.Routes[0].Duration)
+        };
+    }
+
+    private void MinimizeResponseObject(List<WeatherRouteBoundingBox> bboxes)
+    {
+        foreach (var box in bboxes)
+        {
+            // Minimize WeatherObjects
+            var index = box.WeatherForecastAtDurationIndex;
+            if (index >= 0 && index < box.WeatherForeCastHours.Count)
+            {
+                box.WeatherForecastAtDuration = box.WeatherForeCastHours[index];
+            }
+            box.WeatherForeCastHours.Clear();
+
+            // Minimize coordinates
+            box.CoordinatesInBoundingBox.Clear();
+        }
+    }
+
+    private List<WeatherRouteBoundingBox> GetCrossingBoundingBoxes(List<GeoCoordinate> coordinates, DateTime? specificDate = null)
     {
         var boxList = new List<WeatherRouteBoundingBox>();
 
-        var allBoxes = _dbService.GetAllWeatherBoundingBoxes(specificDate);
+        var allBoxes = specificDate.HasValue ? _dbService.GetAllWeatherBoundingBoxes(specificDate.Value) : _dbService.GetAllWeatherBoundingBoxes();
         foreach (var coordinate in coordinates)
         {
             var box = allBoxes.Where(x => x.ContainsPoint(coordinate)).FirstOrDefault();
@@ -62,6 +108,46 @@ public class RouteServices : BaseService
             boxList.Last().CoordinatesInBoundingBox.Add(coordinate);
         }
         return boxList;
+    }
+
+    private void FindBestStartTimeForWeather(List<WeatherRouteBoundingBox> allboxes)
+    {
+        var boxList = allboxes.ToList();
+
+        // check if there is any rain in the next 5 Days
+        if (allboxes.Any(x => x.WeatherForeCastHours.Any(y => y.WillItRain)))
+        {
+            int maxIterations = GetMaxiterations(allboxes);
+            // count raintiles and copy it to boxlist if there is a more rainy one
+            var count = 0;
+            for (int i = 0; i < maxIterations; i++)
+            {
+                var newCount = allboxes.Count(x => x.WeatherForecastAtDuration.WillItRain);
+                if (newCount > count)
+                {
+                    count = newCount;
+                    boxList = allboxes.ToList();
+                }
+                ChangeStartTime(allboxes, 1);
+            }
+        }
+
+        allboxes = boxList;
+    }
+
+    private int GetMaxiterations(List<WeatherRouteBoundingBox> allboxes)
+    {
+        var earliestTime = allboxes.First().TimeClosestToCenter;
+        var earliestTImeInList = allboxes.First().WeatherForeCastHours.First().Time;
+
+        var hourDifference = (earliestTime - earliestTImeInList).Hours;
+
+        var durationOfRouteInSeconds = allboxes.Last().TotalDurationClosestToCenter;
+
+        var durationHours = durationOfRouteInSeconds / 60 / 60;
+
+        var maxIterations = allboxes.First().WeatherForeCastHours.Count - (int)Math.Ceiling(durationHours) - hourDifference;
+        return maxIterations;
     }
 
     private void AddTimingsToBoundingBoxList(RouteRequestObject request, OSRMApiResult calculatedRoute, List<GeoCoordinate> geoCoordinateList, List<WeatherRouteBoundingBox> bboxes)
@@ -104,5 +190,13 @@ public class RouteServices : BaseService
         }
 
         return returnList;
+    }
+
+    public void ChangeStartTime(List<WeatherRouteBoundingBox> bboxes, int hours)
+    {
+        foreach (var bbox in bboxes)
+        {
+            bbox.TimeClosestToCenter = bbox.TimeClosestToCenter.AddHours(hours);
+        }
     }
 }

@@ -40,6 +40,13 @@ public class WeatherRouteController : ControllerBase
         return new JsonResult( await routeService.GetWeatherRouteResponseSingleDayWeather(routeRequestObject));
     }
 
+    [HttpPost("GetRouteWhenMostRain")]
+    public async Task<IActionResult> GetRouteWhenMostRain([FromBody] RouteRequestObject routeRequestObject)
+    {
+        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
+        return new JsonResult( await routeService.GetWeatherRouteResponseWithMostRain(routeRequestObject));
+    }
+
     [HttpGet("GetFullWeatherMap")]
     public IActionResult GetFullWeatherMap()
     {

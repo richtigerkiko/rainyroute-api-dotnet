@@ -19,7 +19,19 @@ public class WeatherRouteBoundingBox : WeatherBoundingBox
     public double TotalDurationClosestToCenter { get; set; }
     public List<GeoCoordinate> CoordinatesInBoundingBox { get; set; } = new List<GeoCoordinate>();
     public GeoCoordinate CoordinateClostestToCenter => FindClosestGeoCoordinateToCenter();
-    public WeatherForeCastHour WeatherForecastAtDuration => WeatherForeCastHours.Where(x => x.Time.Hour == TimeClosestToCenter.Hour).FirstOrDefault() ?? new WeatherForeCastHour();
+    public int WeatherForecastAtDurationIndex =>  WeatherForeCastHours.FindIndex(x => x.Time.DayOfYear == TimeClosestToCenter.DayOfYear && x.Time.Hour == TimeClosestToCenter.Hour);
+
+    private WeatherForeCastHour _weatherForecastAtDuration = new WeatherForeCastHour(); // to stop stackoverflow
+    public WeatherForeCastHour WeatherForecastAtDuration
+    {
+        get
+        {
+            return WeatherForecastAtDurationIndex != -1 ? WeatherForeCastHours[WeatherForecastAtDurationIndex] : _weatherForecastAtDuration;
+        }
+        set{
+            _weatherForecastAtDuration = value;
+        }
+    }
 
     private GeoCoordinate FindClosestGeoCoordinateToCenter()
     {

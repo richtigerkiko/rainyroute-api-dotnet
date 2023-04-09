@@ -14,6 +14,8 @@ public class WeatherForeCastHour
     public double WindSpeed { get; set; }
     public string WeatherAPIComIconURL { get; set; } = "";
 
+    public bool WillItRain => ChanceOfRain >= 50;
+
     public WeatherForeCastHour()
     {
 
@@ -26,10 +28,5 @@ public class WeatherForeCastHour
         WindDegree = weatherApiHour.WindDegree;
         WindSpeed = weatherApiHour.WindKph;
         WeatherAPIComIconURL = weatherApiHour.Condition.Icon;
-    }
-
-    public bool WillItRain()
-    {
-        return ChanceOfRain >= 50; 
     }
 }

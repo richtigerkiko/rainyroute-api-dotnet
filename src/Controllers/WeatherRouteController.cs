@@ -59,12 +59,11 @@ public class WeatherRouteController : ControllerBase
     [HttpGet("GenerateDB")]
     public async Task<IActionResult> TestResponseAsync()
     {
-        var testthing = new Generator(_ravenDbContext, _logger, _config, httpClient);
+        var testthing = new DbGenerator(_ravenDbContext, _logger, _config, httpClient);
 
         testthing.GenerateGermanyBoundingBoxDocuments();
         await testthing.GenerateWeatherForBoundingBoxDocumentsAsync();
 
-        // var distanceBetweenFirstTwo = subBoxes[0].DistanceTo(subBoxes[1]);
         return Ok();
     }
 

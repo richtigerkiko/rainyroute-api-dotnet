@@ -48,7 +48,7 @@ public class DbGenerator : BaseService
 
             var weatherapi = new WeatherApiService(_logger, _config, _httpClient);
 
-            var requestCount = 40; //Bulk request not more than 50, lets say 40
+            var requestCount = 40; // WeatherApi Bulk request not more than 50, lets say 40
 
             for (int i = 0; i < boundingBoxes.Count; i += requestCount)
             {

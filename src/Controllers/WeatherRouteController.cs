@@ -56,15 +56,4 @@ public class WeatherRouteController : ControllerBase
     }
 
 
-    [HttpGet("GenerateDB")]
-    public async Task<IActionResult> TestResponseAsync()
-    {
-        var testthing = new DbGenerator(_ravenDbContext, _logger, _config, httpClient);
-
-        testthing.GenerateGermanyBoundingBoxDocuments();
-        await testthing.GenerateWeatherForBoundingBoxDocumentsAsync();
-
-        return Ok();
-    }
-
 }

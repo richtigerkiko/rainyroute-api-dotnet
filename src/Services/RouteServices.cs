@@ -93,19 +93,26 @@ public class RouteServices : BaseService
 
     private List<WeatherRouteBoundingBox> GetCrossingBoundingBoxes(List<GeoCoordinate> coordinates, DateTime? specificDate = null)
     {
-        var boxList = new List<WeatherRouteBoundingBox>();
+        var allBoxes = specificDate.HasValue ? _dbService.GetAllWeatherBoundingBoxes(specificDate.Value) : _dbService.GetAllWeatherBoundingBoxes(coordinates);
+        var boxList = ReAddCoordinatesToWeatherBoundingBoxList(coordinates,  allBoxes);
+        return boxList;
+    }
 
-        var allBoxes = specificDate.HasValue ? _dbService.GetAllWeatherBoundingBoxes(specificDate.Value) : _dbService.GetAllWeatherBoundingBoxes();
+    private List<WeatherRouteBoundingBox> ReAddCoordinatesToWeatherBoundingBoxList(List<GeoCoordinate> coordinates, List<WeatherBoundingBox> allBoxes)
+    {
+        var boxList = new List<WeatherRouteBoundingBox>();
         foreach (var coordinate in coordinates)
         {
-            var box = allBoxes.Where(x => x.ContainsPoint(coordinate)).FirstOrDefault();
+            var box = allBoxes.Where(x => x.Contains(coordinate)).FirstOrDefault();
 
-            if (box != null && !(boxList.Any(x => x.Id == box.Id)))
+            if (box != null)
             {
-                boxList.Add(new WeatherRouteBoundingBox(box));
+                if (!(boxList.Any(x => x.Id == box.Id)))
+                {
+                    boxList.Add(new WeatherRouteBoundingBox(box));
+                }
+                boxList.Last().CoordinatesInBoundingBox.Add(coordinate);
             }
-
-            boxList.Last().CoordinatesInBoundingBox.Add(coordinate);
         }
         return boxList;
     }

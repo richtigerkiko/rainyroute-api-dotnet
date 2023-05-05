@@ -46,8 +46,8 @@ public class RavenDbContext : IDisposable
         _documentStore.Maintenance.Send(new PutIndexesOperation(new[] {
             new IndexDefinition
             {
-                Name = "WeatherForeCastHours/WeatherBoundingBox",
-                Maps = { "from wf in docs.WeatherForeCastHours select new { WeatherBoundingBox = wf.WeatherBoundingBoxId }" }
+                Name = "WeatherForeCastHours/ByWeatherBoundingBoxId",
+                Maps = { "from wf in docs.WeatherForeCastHours select new { WeatherBoundingBoxId = wf.WeatherBoundingBoxId }" }
             },
             new IndexDefinition
             {
@@ -60,6 +60,6 @@ public class RavenDbContext : IDisposable
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+
     }
 }

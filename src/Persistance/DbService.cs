@@ -6,7 +6,7 @@ using Raven.Client.Documents;
 using Raven.Client.Documents.Queries.Spatial;
 using Raven.Client.Documents.Session;
 
-namespace rainyroute.Services;
+namespace rainyroute.Persistance;
 internal class DbService
 {
     private IDocumentStore _store;
@@ -21,6 +21,10 @@ internal class DbService
         using (var session = _store.OpenSession())
         {
             var allBoxes = session.Query<WeatherBoundingBox>().ToList();
+            var ids = allBoxes.Select(x => x.Id);
+            // var weatherForecastHours = session.Query<WeatherForeCastHour>().Where(x => ids.Contains(x.WeatherBoundingBoxId)).ToList();
+
+            // allBoxes.ForEach(x => x.WeatherForeCastHours = weatherForecastHours.Where(y => y.WeatherBoundingBoxId == x.Id).ToList());
             return allBoxes;
         }
     }
@@ -37,5 +41,22 @@ internal class DbService
         }).ToList();
 
         return allBoxes;
+    }
+
+    public List<WeatherBoundingBox> GetAllWeatherBoundingBoxes(List<GeoCoordinate> coordinates)
+    {
+        var bbox = new BoundingBox(coordinates);
+
+        using (var session = _store.OpenSession())
+        {
+            var allBoxesInBoundingBox = session.Query<WeatherBoundingBox>().Where(x => 
+                    x.MinCoordinate.Latitude >= bbox.MinCoordinate.Latitude && 
+                    x.MaxCoordinate.Latitude <= bbox.MaxCoordinate.Latitude && 
+                    x.MinCoordinate.Longitude >= bbox.MinCoordinate.Longitude && 
+                    x.MaxCoordinate.Longitude <= bbox.MaxCoordinate.Longitude)
+                .ToList();
+            
+            return allBoxesInBoundingBox;
+        }
     }
 }

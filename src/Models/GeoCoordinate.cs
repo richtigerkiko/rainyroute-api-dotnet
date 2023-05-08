@@ -1,5 +1,7 @@
 
 // Iplementation like old net 4 Geocoordinate: https://learn.microsoft.com/en-us/dotnet/api/system.device.location.geocoordinate?view=netframework-4.8
+using Microsoft.EntityFrameworkCore;
+
 namespace rainyroute.Models;
 
 public class GeoCoordinate : IEquatable<GeoCoordinate>

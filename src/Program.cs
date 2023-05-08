@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using rainyroute.Models.Configurations;
 using rainyroute.Persistance;
+using rainyroute.Persistance.Postgres;
 using rainyroute.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,13 +27,15 @@ builder.Services.AddCors(options =>
         });
     });
 
-builder.Services.Configure<RavenDbConfiguration>(builder.Configuration.GetSection("RavenDb"));
+// builder.Services.Configure<RavenDbConfiguration>(builder.Configuration.GetSection("RavenDb"));
 
 builder.Services.AddTransient<ILogger>(s => s.GetRequiredService<ILogger<Program>>());
 
-builder.Services.AddSingleton<RavenDbContext>();
+// builder.Services.AddSingleton<RavenDbContext>();
 
-builder.Services.AddHostedService<DatabaseMaintenanceService>();
+builder.Services.AddDbContext<RainyrouteContext>();
+
+builder.Services.AddHostedService<RainyRouteDbMaintenance>();
 
 var app = builder.Build();
 

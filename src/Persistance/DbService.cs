@@ -1,62 +1,76 @@
-using rainyroute.Models;
-using rainyroute.Models.Data;
-using rainyroute.Persistance;
-using rainyroute.Persistance.Indexes;
-using Raven.Client.Documents;
-using Raven.Client.Documents.Queries.Spatial;
-using Raven.Client.Documents.Session;
+using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
+using rainyroute.Models.ResponseObjects.ExternalApiResponses.WeatherAPI;
+using rainyroute.Persistance.Models;
 
 namespace rainyroute.Persistance;
-internal class DbService
-{
-    private IDocumentStore _store;
 
-    public DbService(RavenDbContext dbContext)
+public class DbService
+{
+    private RainyrouteContext _dbContext;
+
+    public DbService(RainyrouteContext dbContext)
     {
-        _store = dbContext._documentStore;
+        _dbContext = dbContext;
     }
 
     public List<WeatherBoundingBox> GetAllWeatherBoundingBoxes()
     {
-        using (var session = _store.OpenSession())
-        {
-            var allBoxes = session.Query<WeatherBoundingBox>().ToList();
-            var ids = allBoxes.Select(x => x.Id);
-            // var weatherForecastHours = session.Query<WeatherForeCastHour>().Where(x => ids.Contains(x.WeatherBoundingBoxId)).ToList();
 
-            // allBoxes.ForEach(x => x.WeatherForeCastHours = weatherForecastHours.Where(y => y.WeatherBoundingBoxId == x.Id).ToList());
-            return allBoxes;
-        }
-    }
-
-    public List<WeatherBoundingBox> GetAllWeatherBoundingBoxes(DateTime specificDate)
-    {
-        var allBoxes = GetAllWeatherBoundingBoxes().Select(x => new WeatherBoundingBox
-        {
-            Id = x.Id,
-            MinCoordinate = x.MinCoordinate,
-            MaxCoordinate = x.MaxCoordinate,
-            WeatherForeCastHours = x.WeatherForeCastHours.Where(weatherForeCastHour => weatherForeCastHour.Time.Date.DayOfYear == specificDate.Date.DayOfYear)
-        .ToList()
-        }).ToList();
+        var allBoxes = _dbContext.WeatherBoundingBoxes.ToList();
 
         return allBoxes;
+
     }
 
-    public List<WeatherBoundingBox> GetAllWeatherBoundingBoxes(List<GeoCoordinate> coordinates)
+    public List<WeatherBoundingBox> GetWeatherBoundingBoxesOfCoordinates(List<Point> points)
     {
-        var bbox = new BoundingBox(coordinates);
+        var coordList = points.Select(x => x.Coordinate).ToList();
+        var envelope = new Envelope(coordList);
+        var envelopeGeometry = GeometryFactory.Default.CreatePolygon(
+            new Coordinate[] {
+                new Coordinate(envelope.MinX, envelope.MinY),
+                new Coordinate(envelope.MaxX, envelope.MinY),
+                new Coordinate(envelope.MaxX, envelope.MaxY),
+                new Coordinate(envelope.MinX, envelope.MaxY),
+                new Coordinate(envelope.MinX, envelope.MinY)
+            });
 
-        using (var session = _store.OpenSession())
+        var crossedBoxes = _dbContext.WeatherBoundingBoxes
+            .Where(x => envelopeGeometry.Contains(x.MinCoordinate) || envelopeGeometry.Contains(x.MaxCoordinate))
+            .Include(x => x.WeatherForeCastHours)
+            .ToList();
+
+        return crossedBoxes;
+
+    }
+
+    public void SetWeatherBoundingBoxeWeather(WeatherBoundingBox box, Forecastday day)
+    {
+
+        try
         {
-            var allBoxesInBoundingBox = session.Query<WeatherBoundingBox>().Where(x => 
-                    x.MinCoordinate.Latitude >= bbox.MinCoordinate.Latitude && 
-                    x.MaxCoordinate.Latitude <= bbox.MaxCoordinate.Latitude && 
-                    x.MinCoordinate.Longitude >= bbox.MinCoordinate.Longitude && 
-                    x.MaxCoordinate.Longitude <= bbox.MaxCoordinate.Longitude)
-                .ToList();
-            
-            return allBoxesInBoundingBox;
+            foreach (var hour in day.Hour)
+            {
+                var WeatherForeCastHour = new WeatherForeCastHour(hour);
+                box.WeatherForeCastHours.Add(WeatherForeCastHour);
+            }
+            _dbContext.Update(box);
+            _dbContext.SaveChanges();
         }
+        catch (Exception ex)
+        {
+
+        }
+
+    }
+
+    public List<WeatherBoundingBox> GetFullWeatherMap(int day, int hour)
+    {
+        var allboxes = _dbContext.WeatherBoundingBoxes.Include(x => x.WeatherForeCastHours.
+                                                            Where(y => y.Time.Day == day).Where(y => y.Time.Hour == hour))
+                                                      .ToList();
+
+        return allboxes;
     }
 }

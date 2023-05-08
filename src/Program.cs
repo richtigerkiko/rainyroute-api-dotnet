@@ -1,41 +1,40 @@
 using System.Globalization;
+using System.Reflection;
 using Microsoft.AspNetCore.Localization;
-using rainyroute.Models.Configurations;
+using Microsoft.EntityFrameworkCore;
 using rainyroute.Persistance;
-using rainyroute.Persistance.Postgres;
-using rainyroute.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options => {
+    options.JsonSerializerOptions.Converters.Add(new NetTopologySuite.IO.Converters.GeoJsonConverterFactory());
+    // options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add Cors from appsettings.json
-var corsAllowedUrls = builder.Configuration["CORS:AllowedUrls"]?.Split(",") ?? new string[] { };
-builder.Services.AddCors(options =>
-    {
-        // this defines a CORS policy called "default"
-        options.AddPolicy("default", policy =>
-        {
-            policy.WithOrigins(corsAllowedUrls)
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-    });
+// add Configuration
+builder.Configuration.AddJsonFile("src/appsettings.json", optional: false).AddEnvironmentVariables().AddUserSecrets(Assembly.GetExecutingAssembly(), true);
+var configuration = builder.Configuration;
+builder.Services.AddSingleton(configuration);
 
-// builder.Services.Configure<RavenDbConfiguration>(builder.Configuration.GetSection("RavenDb"));
+// Make Cors better Later
+// var corsAllowedUrls = builder.Configuration["CORS:AllowedUrls"]?.Split(",") ?? new string[] { };
+builder.Services.AddCors(options 
+  => options.AddPolicy(name: "default", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
-builder.Services.AddTransient<ILogger>(s => s.GetRequiredService<ILogger<Program>>());
+// Initialize HTTPRequests
+builder.Services.AddHttpClient();
 
-// builder.Services.AddSingleton<RavenDbContext>();
-
-builder.Services.AddDbContext<RainyrouteContext>();
-
-builder.Services.AddHostedService<RainyRouteDbMaintenance>();
+// Initialize Database
+// AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+builder.Services.AddDbContext<RainyrouteContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL"), postgreso => postgreso.UseNetTopologySuite()));
+builder.Services.AddHostedService<DbMaintenanceService>().AddHttpClient();
 
 var app = builder.Build();
 
@@ -52,12 +51,17 @@ app.UseRequestLocalization(
     {
         DefaultRequestCulture = new RequestCulture(defaultCulture),
         SupportedCultures = new List<CultureInfo> { new CultureInfo(defaultCulture) },
-        SupportedUICultures = new List<CultureInfo> { new CultureInfo(defaultCulture) }
+        SupportedUICultures = new List<CultureInfo> { new CultureInfo(defaultCulture) },
     }
 );
 
+var cultureInfo = new CultureInfo(defaultCulture);
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+Thread.CurrentThread.CurrentCulture = cultureInfo;
+Thread.CurrentThread.CurrentUICulture = cultureInfo;
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

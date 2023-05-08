@@ -1,14 +1,27 @@
 using Microsoft.AspNetCore.WebUtilities;
+using NetTopologySuite.Geometries;
+using rainyroute.Controllers;
 using rainyroute.Models;
 using rainyroute.Models.ResponseObjects.ExternalApiResponses.OSRMApi;
+using rainyroute.Persistance;
 
 namespace rainyroute.Services;
 
-public class OpenStreetmapApiService: BaseService
+public class OpenStreetmapApiService
 {
-    public OpenStreetmapApiService(ILogger logger, IConfiguration config, HttpClient httpClient) : base(logger, config, httpClient)
-    {
+    private readonly ILogger<WeatherRouteController> _logger;
+    private readonly IConfiguration _config;
 
+    private readonly RainyrouteContext _dbContext;
+
+    private readonly HttpClient _httpClient;
+
+    public OpenStreetmapApiService(ILogger<WeatherRouteController> logger, IConfiguration config, HttpClient httpClient, RainyrouteContext dbContext)
+    {
+        _logger = logger;
+        _config = config;
+        _httpClient = httpClient;
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -17,7 +30,7 @@ public class OpenStreetmapApiService: BaseService
     /// <param name="coordinateStart"></param>
     /// <param name="coordinateDestination"></param>
     /// <returns></returns>
-    public async Task<OSRMApiResult> GetOSRMApiResult(GeoCoordinate coordinateStart, GeoCoordinate coordinateDestination)
+    public async Task<OSRMApiResult> GetOSRMApiResult(Point coordinateStart, Point coordinateDestination)
     {
 
         var resultObj = new OSRMApiResult();
@@ -25,7 +38,7 @@ public class OpenStreetmapApiService: BaseService
         try
         {
             // Route Request http://project-osrm.org/docs/v5.5.1/api/#requests
-            var url = $"http://router.project-osrm.org/route/v1/driving/{coordinateStart.Longitude},{coordinateStart.Latitude};{coordinateDestination.Longitude},{coordinateDestination.Latitude}";
+            var url = $"http://router.project-osrm.org/route/v1/driving/{coordinateStart.Y},{coordinateStart.X};{coordinateDestination.Y},{coordinateDestination.X}";
             var queryParams = new Dictionary<string, string?>(){
                 {"annotations", "true"},
                 {"steps", "false"},

@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using rainyroute.Models.RequestObject;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
 using rainyroute.Persistance;
 using rainyroute.Services;
 
@@ -12,48 +15,31 @@ public class WeatherRouteController : ControllerBase
     private readonly ILogger<WeatherRouteController> _logger;
     private readonly IConfiguration _config;
 
-    private static RavenDbContext _ravenDbContext;
+    private readonly RainyrouteContext _dbContext;
 
-    private readonly HttpClient httpClient;
+    private readonly HttpClient _httpClient;
 
-    public WeatherRouteController(ILogger<WeatherRouteController> logger, IConfiguration config, RavenDbContext ravenDbContext)
+    public WeatherRouteController(ILogger<WeatherRouteController> logger, IConfiguration config, HttpClient httpClient, RainyrouteContext dbContext)
     {
         _logger = logger;
         _config = config;
-
-        _ravenDbContext = ravenDbContext;
-        
-        // Initialize new httpClient for all child services to use
-        httpClient = new HttpClient(new SocketsHttpHandler
-        {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
-        });
+        _httpClient = httpClient;
+        _dbContext = dbContext;
     }
 
-
-    [HttpPost("GetNewWeatherRoute")]
-    public async Task<IActionResult> GetWeatherRouteWithDb([FromBody] RouteRequestObject routeRequestObject)
+    [HttpPost("GetWeatherRoute")]
+    public async Task<IActionResult> GetWeatherRoute([FromBody] RouteRequestObject routeRequestObject, [FromQuery] RouteRequestMode mode)
     {
-        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
+        var routeService = new RouteServices(_logger, _config, _httpClient, _dbContext);
 
-
-        return new JsonResult( await routeService.GetWeatherRouteResponseSingleDayWeather(routeRequestObject));
+        return new JsonResult( await routeService.GetWeatherRouteResponse(routeRequestObject, mode));
     }
 
-    [HttpPost("GetRouteWhenMostRain")]
-    public async Task<IActionResult> GetRouteWhenMostRain([FromBody] RouteRequestObject routeRequestObject)
+    [HttpGet("GetFullMap")]
+    public async Task<IActionResult> GetFullMap([FromQuery] int day, [FromQuery] int hour)
     {
-        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
-        return new JsonResult( await routeService.GetWeatherRouteResponseWithMostRain(routeRequestObject));
+        var routeService = new RouteServices(_logger, _config, _httpClient, _dbContext);
+
+        return new JsonResult( routeService.GetFullWeatherMap(day, hour));
     }
-
-    [HttpGet("GetFullWeatherMap")]
-    public IActionResult GetFullWeatherMap()
-    {
-        var routeService = new RouteServices(_logger, _config, httpClient, _ravenDbContext);
-
-        return new JsonResult( routeService.GetFullWeatherMapResponse());
-    }
-
-
 }

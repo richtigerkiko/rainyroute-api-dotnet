@@ -12,9 +12,12 @@
     <Compile Include="src\program.cs" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="3.0.0" />
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="3.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="7.0.4" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="7.0.4" />
     <PackageReference Include="Polyliner.Net" Version="1.0.2" />
-    <PackageReference Include="RavenDB.Client" Version="5.4.103" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 

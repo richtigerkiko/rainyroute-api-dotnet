@@ -19,7 +19,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // add Configuration
-builder.Configuration.AddJsonFile("src/appsettings.json", optional: false).AddEnvironmentVariables().AddUserSecrets(Assembly.GetExecutingAssembly(), true);
+builder.Configuration.AddJsonFile("appsettings.json", optional: false).AddEnvironmentVariables().AddUserSecrets(Assembly.GetExecutingAssembly(), true);
 var configuration = builder.Configuration;
 builder.Services.AddSingleton(configuration);
 
